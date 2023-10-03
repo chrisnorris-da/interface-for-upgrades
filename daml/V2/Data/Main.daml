@@ -1,0 +1,8 @@
+module V2.Data.Main where
+
+template T
+  with
+    p : Party
+    foo : Text
+  where
+    signatory p

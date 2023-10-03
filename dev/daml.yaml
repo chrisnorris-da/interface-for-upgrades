@@ -1,0 +1,11 @@
+sdk-version: 2.7.3
+name: interface101V2-dev
+source: .
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+  - ../target/V1.dar
+sandbox-options:
+  - --wall-clock-time

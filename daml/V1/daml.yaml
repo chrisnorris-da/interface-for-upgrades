@@ -1,0 +1,15 @@
+sdk-version: 2.7.3
+name: interface101V1
+source: ..
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+build-options:
+  - --target=1.15
+  - --ghc-option
+  - "-Werror \
+     -Wall"
+sandbox-options:
+  - --wall-clock-time

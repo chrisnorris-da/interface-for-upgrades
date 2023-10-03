@@ -1,0 +1,42 @@
+module V2.Interfaces.Main where
+
+import V1.Data.Main qualified as V1
+import V2.Data.Main qualified as V2
+import Daml.Script
+import DA.Assert (assertEq)
+
+interface IT where
+  viewtype VT
+  upgrade : IT
+  choice C : ContractId IT with
+   controller (view this).p
+   do
+     create this
+
+  choice Upgrade : ContractId IT
+   controller (view this).p
+      do create (upgrade this)
+
+  interface instance IT for V1.T where
+    view = let V1.T{..} = this in VT with foo = "", p
+    upgrade = let V1.T{..} = this in toInterface @IT $ V2.T with foo = "", ..
+
+  interface instance IT for V2.T where
+    view = let V2.T{..} = this in VT with ..
+    upgrade = toInterface @IT this
+
+data VT = VT with
+    p : Party
+    foo : Text
+     deriving (Show, Eq)
+
+aa = script $ do
+  p <- allocateParty "p"
+  v1t <- submit p $ createCmd V1.T with ..
+  [(cid, it)] <- queryInterface @IT p
+  debug it
+
+  submit p do exerciseCmd cid Upgrade
+  [(cid, it)] <- queryInterface @IT p
+  debug it
+  assertEq 2 2
