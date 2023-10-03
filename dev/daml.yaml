@@ -6,6 +6,5 @@ dependencies:
   - daml-prim
   - daml-stdlib
   - daml-script
-  - ../target/V1.dar
 sandbox-options:
   - --wall-clock-time
