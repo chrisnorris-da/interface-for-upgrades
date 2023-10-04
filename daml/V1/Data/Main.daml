@@ -5,8 +5,3 @@ template T
     p : Party
   where
     signatory p
-
-    choice C : ContractId T
-      controller p
-      do
-       create this
