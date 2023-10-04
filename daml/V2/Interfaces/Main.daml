@@ -8,18 +8,19 @@ import DA.Assert (assertEq)
 interface IT where
   viewtype VT
   upgrade : IT
+
   choice C : ContractId IT with
    controller (view this).p
    do
-     create this
+     create $ upgrade this
 
   choice Upgrade : ContractId IT
    controller (view this).p
       do create (upgrade this)
 
   interface instance IT for V1.T where
-    view = let V1.T{..} = this in VT with foo = "", p
-    upgrade = let V1.T{..} = this in toInterface @IT $ V2.T with foo = "", ..
+    view = let V1.T{..} = this in VT with foo = "VT foo", p
+    upgrade = let V1.T{..} = this in toInterface @IT $ V2.T with foo = "V2 foo", ..
 
   interface instance IT for V2.T where
     view = let V2.T{..} = this in VT with ..
@@ -30,13 +31,24 @@ data VT = VT with
     foo : Text
      deriving (Show, Eq)
 
-aa = script $ do
+explicitEagerUpgrade : Script ()
+explicitEagerUpgrade = script $ do
   p <- allocateParty "p"
   v1t <- submit p $ createCmd V1.T with ..
-  [(cid, it)] <- queryInterface @IT p
-  debug it
+  [(cidIT, Some vt)] <- queryInterface @IT p
+  assertEq vt.foo "VT foo"
 
-  submit p do exerciseCmd cid Upgrade
-  [(cid, it)] <- queryInterface @IT p
-  debug it
-  assertEq 2 2
+  submit p do exerciseCmd cidIT Upgrade
+  [(cidIT, Some vt)] <- queryInterface @IT p
+  assertEq vt.foo "V2 foo"
+
+implicitLazyUpgrade = script $ do
+  p <- allocateParty "p"
+  v1t <- submit p $ createCmd V1.T with ..
+  [(cidIT, Some vt)] <- queryInterface @IT p
+  assertEq vt.foo "VT foo"
+
+  submit p do exerciseCmd cidIT C
+  [(cidIT, Some vt)] <- queryInterface @IT p
+  debug vt
+  assertEq vt.foo "V2 foo"
